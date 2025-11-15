@@ -1,5 +1,5 @@
 // ===========================
-// Emoji Catcher Game - Working Version
+// Emoji Catcher Game - Enhanced Edition 🎮
 // ===========================
 
 // DOM Elements
@@ -10,115 +10,141 @@ const startButton = document.getElementById("start-button");
 const restartButton = document.getElementById("restart-button");
 const scoreDisplay = document.getElementById("score");
 const livesDisplay = document.getElementById("lives");
-
 const canvas = document.getElementById("game-canvas");
 const ctx = canvas.getContext("2d");
 
-// Resize canvas
+// Adjust canvas for device screen
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let basket = { x: canvas.width / 2 - 40, y: canvas.height - 80, width: 80, height: 40 };
+// Basket configuration
+let basket = {
+  x: canvas.width / 2 - 60,
+  y: canvas.height - 120,
+  width: 120,
+  height: 60,
+};
+
+// Emojis and game state
 let emojis = [];
 let score = 0;
 let lives = 3;
 let isGameRunning = false;
 
-const emojiList = ["🍎", "🍋", "🍒", "🎈", "💣"];
+const emojiList = ["🍎", "🍋", "🍉", "🍒", "🎈", "💣"];
 
 // ===========================
-// Game Setup
+// 🎵 Sound Effects
 // ===========================
+const sounds = {
+  catch: new Audio("catch.mp3"), // when catching a fruit
+  bomb: new Audio("bomb.mp3"),   // when catching a bomb
+  miss: new Audio("miss.mp3"),   // when missing a fruit
+  bgm: new Audio("bgm.mp3"),     // background music
+};
+sounds.bgm.loop = true;
 
-// Start button
+// ===========================
+// 🚀 Start & Restart Game
+// ===========================
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
 
 function startGame() {
-  // Reset state
   emojis = [];
   score = 0;
   lives = 3;
   isGameRunning = true;
 
-  // UI transitions
   startScreen.classList.add("hidden");
   gameOverScreen.classList.add("hidden");
   gameContainer.classList.remove("hidden");
 
-  // Start loops
+  sounds.bgm.currentTime = 0;
+  sounds.bgm.play().catch(() => {
+    console.log("Background music will start on user action.");
+  });
+
   updateScoreboard();
   spawnEmoji();
   gameLoop();
 }
 
 // ===========================
-// Controls
+// 🎮 Controls
 // ===========================
 document.addEventListener("keydown", (event) => {
   if (!isGameRunning) return;
   if (event.key === "ArrowLeft" && basket.x > 0) {
-    basket.x -= 25;
+    basket.x -= 30;
   } else if (event.key === "ArrowRight" && basket.x + basket.width < canvas.width) {
-    basket.x += 25;
+    basket.x += 30;
   }
 });
 
 // ===========================
-// Game Mechanics
+// 🍎 Emoji Spawning
 // ===========================
 function spawnEmoji() {
   if (!isGameRunning) return;
 
   const emoji = {
-    x: Math.random() * (canvas.width - 40),
+    x: Math.random() * (canvas.width - 60),
     y: 0,
-    speed: 2 + Math.random() * 3,
+    speed: 2 + Math.random() * 4,
     symbol: emojiList[Math.floor(Math.random() * emojiList.length)],
   };
   emojis.push(emoji);
 
-  setTimeout(spawnEmoji, 1000 + Math.random() * 1500);
+  setTimeout(spawnEmoji, 900 + Math.random() * 1000);
 }
 
+// ===========================
+// 🎨 Game Loop
+// ===========================
 function gameLoop() {
   if (!isGameRunning) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw basket
-  ctx.font = "40px Arial";
+  ctx.font = "70px Arial";
   ctx.fillText("🧺", basket.x, basket.y);
 
   // Draw and update emojis
+  ctx.font = "60px Arial";
   emojis.forEach((emoji, index) => {
     emoji.y += emoji.speed;
     ctx.fillText(emoji.symbol, emoji.x, emoji.y);
 
     // Collision check
     if (
-      emoji.y + 30 >= basket.y &&
-      emoji.x + 30 >= basket.x &&
+      emoji.y + 50 >= basket.y &&
+      emoji.x + 50 >= basket.x &&
       emoji.x <= basket.x + basket.width
     ) {
-      // Collision
       if (emoji.symbol === "💣") {
         lives--;
+        sounds.bomb.play();
       } else {
         score++;
+        sounds.catch.play();
       }
       emojis.splice(index, 1);
       updateScoreboard();
-    }else if (emoji.y > canvas.height) {
+    }
+    // Missed emoji
+    else if (emoji.y > canvas.height) {
       if (emoji.symbol !== "💣") {
-        lives--; // only lose a life for missing good emojis
+        lives--;
+        sounds.miss.play();
       }
       emojis.splice(index, 1);
       updateScoreboard();
     }
   });
 
-  // Check Game Over
+  // Game over
   if (lives <= 0) {
     endGame();
     return;
@@ -127,16 +153,20 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// ===========================
+// 🧮 Score + Lives Display
+// ===========================
 function updateScoreboard() {
   scoreDisplay.textContent = score;
   livesDisplay.textContent = "❤️".repeat(lives);
 }
 
 // ===========================
-// Game Over
+// 🔚 End Game
 // ===========================
 function endGame() {
   isGameRunning = false;
+  sounds.bgm.pause();
   gameContainer.classList.add("hidden");
   gameOverScreen.classList.remove("hidden");
 }
