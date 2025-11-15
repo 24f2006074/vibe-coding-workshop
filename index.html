@@ -1,24 +1,31 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Emoji Catcher</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emoji Catcher</title>
+  
+  <!-- Corrected file names -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="emojiCatcher.js" defer></script>
 </head>
 <body>
-    <div id="start-screen">
-        <h1>Emoji Catcher</h1>
-        <button id="start-button">Play</button>
+  <div id="start-screen">
+    <h1>Emoji Catcher</h1>
+    <button id="start-button">Play</button>
+  </div>
+
+  <div id="game-container" class="hidden">
+    <div id="score-container">
+      <span id="lives">❤️❤️❤️</span>
+      <span id="score">0</span>
     </div>
-    <div id="game-container" class="hidden">
-        <div id="score-container">
-            <span id="lives">❤️❤️❤️</span>
-            <span id="score">0</span>
-        </div>
-        <canvas id="game-canvas"></canvas>
-    </div>
-    <div id="game-over-screen" class="hidden">
-        <h1>Game Over</h1>
-        <button id="restart-button">Restart</button>
-    </div>
-    <script src="script.js"></script>
+    <canvas id="game-canvas"></canvas>
+  </div>
+
+  <div id="game-over-screen" class="hidden">
+    <h1>Game Over</h1>
+    <button id="restart-button">Restart</button>
+  </div>
 </body>
 </html>
