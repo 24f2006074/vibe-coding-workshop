@@ -1,52 +1,141 @@
+// ===========================
+// Emoji Catcher Game - Working Version
+// ===========================
+
+// DOM Elements
+const startScreen = document.getElementById("start-screen");
+const gameContainer = document.getElementById("game-container");
+const gameOverScreen = document.getElementById("game-over-screen");
+const startButton = document.getElementById("start-button");
+const restartButton = document.getElementById("restart-button");
+const scoreDisplay = document.getElementById("score");
+const livesDisplay = document.getElementById("lives");
+
+const canvas = document.getElementById("game-canvas");
+const ctx = canvas.getContext("2d");
+
+// Resize canvas
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let basket = { x: canvas.width / 2 - 40, y: canvas.height - 80, width: 80, height: 40 };
+let emojis = [];
 let score = 0;
-let gameOver = false;
-const basket = document.getElementById('basket');
-const gameArea = document.getElementById('gameArea');
+let lives = 3;
+let isGameRunning = false;
 
-document.addEventListener('keydown', controlBasket);
+const emojiList = ["🍎", "🍋", "🍒", "🎈", "💣"];
 
-function controlBasket(event) {
-    const basketRect = basket.getBoundingClientRect();
-    if (event.key === 'ArrowLeft' && basketRect.left > 0) {
-        basket.style.left = `${basketRect.left - 20}px`;
-    }
-    if (event.key === 'ArrowRight' && basketRect.right < window.innerWidth) {
-        basket.style.left = `${basketRect.left + 20}px`;
-    }
+// ===========================
+// Game Setup
+// ===========================
+
+// Start button
+startButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", startGame);
+
+function startGame() {
+  // Reset state
+  emojis = [];
+  score = 0;
+  lives = 3;
+  isGameRunning = true;
+
+  // UI transitions
+  startScreen.classList.add("hidden");
+  gameOverScreen.classList.add("hidden");
+  gameContainer.classList.remove("hidden");
+
+  // Start loops
+  updateScoreboard();
+  spawnEmoji();
+  gameLoop();
 }
 
-function dropEmoji() {
-    const emoji = document.createElement('div');
-    emoji.className = 'emoji';
-    emoji.style.left = `${Math.random() * (window.innerWidth - 50)}px`;
-    gameArea.appendChild(emoji);
-    let emojiFallInterval = setInterval(() => {
-        const emojiRect = emoji.getBoundingClientRect();
-        if (emojiRect.bottom >= window.innerHeight) {
-            clearInterval(emojiFallInterval);
-            gameOver = true;
-            alert('Game Over! Your score: ' + score);
-        } else {
-            emoji.style.top = `${emojiRect.top + 5}px`;
-        }
-        checkCatch(emoji, emojiFallInterval);
-    }, 100);
+// ===========================
+// Controls
+// ===========================
+document.addEventListener("keydown", (event) => {
+  if (!isGameRunning) return;
+  if (event.key === "ArrowLeft" && basket.x > 0) {
+    basket.x -= 25;
+  } else if (event.key === "ArrowRight" && basket.x + basket.width < canvas.width) {
+    basket.x += 25;
+  }
+});
+
+// ===========================
+// Game Mechanics
+// ===========================
+function spawnEmoji() {
+  if (!isGameRunning) return;
+
+  const emoji = {
+    x: Math.random() * (canvas.width - 40),
+    y: 0,
+    speed: 2 + Math.random() * 3,
+    symbol: emojiList[Math.floor(Math.random() * emojiList.length)],
+  };
+  emojis.push(emoji);
+
+  setTimeout(spawnEmoji, 1000 + Math.random() * 1500);
 }
 
-function checkCatch(emoji, emojiFallInterval) {
-    const basketRect = basket.getBoundingClientRect();
-    const emojiRect = emoji.getBoundingClientRect();
+function gameLoop() {
+  if (!isGameRunning) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw basket
+  ctx.font = "40px Arial";
+  ctx.fillText("🧺", basket.x, basket.y);
+
+  // Draw and update emojis
+  emojis.forEach((emoji, index) => {
+    emoji.y += emoji.speed;
+    ctx.fillText(emoji.symbol, emoji.x, emoji.y);
+
+    // Collision check
     if (
-        emojiRect.bottom >= basketRect.top &&
-        emojiRect.right >= basketRect.left &&
-        emojiRect.left <= basketRect.right
+      emoji.y + 30 >= basket.y &&
+      emoji.x + 30 >= basket.x &&
+      emoji.x <= basket.x + basket.width
     ) {
+      // Collision
+      if (emoji.symbol === "💣") {
+        lives--;
+      } else {
         score++;
-        clearInterval(emojiFallInterval);
-        emoji.remove();
+      }
+      emojis.splice(index, 1);
+      updateScoreboard();
+    } else if (emoji.y > canvas.height) {
+      // Missed
+      lives--;
+      emojis.splice(index, 1);
+      updateScoreboard();
     }
+  });
+
+  // Check Game Over
+  if (lives <= 0) {
+    endGame();
+    return;
+  }
+
+  requestAnimationFrame(gameLoop);
 }
 
-setInterval(() => {
-    if (!gameOver) dropEmoji();
-}, 2000);
+function updateScoreboard() {
+  scoreDisplay.textContent = score;
+  livesDisplay.textContent = "❤️".repeat(lives);
+}
+
+// ===========================
+// Game Over
+// ===========================
+function endGame() {
+  isGameRunning = false;
+  gameContainer.classList.add("hidden");
+  gameOverScreen.classList.remove("hidden");
+}
