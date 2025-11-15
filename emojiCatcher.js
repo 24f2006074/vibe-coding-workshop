@@ -109,9 +109,10 @@ function gameLoop() {
       }
       emojis.splice(index, 1);
       updateScoreboard();
-    } else if (emoji.y > canvas.height) {
-      // Missed
-      lives--;
+    }else if (emoji.y > canvas.height) {
+      if (emoji.symbol !== "💣") {
+        lives--; // only lose a life for missing good emojis
+      }
       emojis.splice(index, 1);
       updateScoreboard();
     }
